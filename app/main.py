@@ -181,16 +181,38 @@ async def github_webhook(request: Request, background_tasks: BackgroundTasks):
     payload      = await request.json()
     event_action = payload.get("action", "")
     issue        = payload.get("issue", {})
-    labels       = [lbl.get("name", "").lower() for lbl in issue.get("labels", [])]
+    #labels       = [lbl.get("name", "").lower() for lbl in issue.get("labels", [])]
+    label_added  = payload.get("label", {}).get("name", "").lower()
 
-    if event_action not in ("opened", "labeled") or "auto-remediate" not in labels:
-        return {"status": "ignored", "reason": "Not an auto-remediate issue or wrong action"}
+    if event_action != "labeled" or label_added != "auto-remediate":
+        return {"status": "ignored", "reason": f"action={event_action}, label={label_added} — not an auto-remediate trigger"}
 
     issue_number = issue.get("number")
     issue_title  = issue.get("title", "")
     issue_body   = issue.get("body", "")
     issue_url    = issue.get("html_url", "")
+    
+    # ── Safety net: deduplication guard ──────────────────────────────────────
+    # Reject if an active (non-terminal) session already exists for this issue.
+    # Terminal statuses: exit, error, suspended — anything else is still live.
+    conn = get_db()
+    existing = conn.execute(
+        """SELECT devin_session_id, status FROM sessions
+           WHERE github_issue_number = ?
+           AND   status NOT IN ('exit', 'error', 'suspended')
+           ORDER BY started_at DESC LIMIT 1""",
+        (issue_number,)
+    ).fetchone()
+    conn.close()
 
+    if existing:
+        return {
+            "status":               "duplicate_ignored",
+            "reason":               f"Active session already exists for issue #{issue_number}",
+            "existing_session_id":  existing[0],
+            "existing_status":      existing[1],
+        }
+        
     try:
         devin_session_id = create_devin_session(issue_number, issue_title, issue_body, issue_url)
     except Exception as exc:
