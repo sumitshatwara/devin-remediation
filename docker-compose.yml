@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  remediation-server:
+    build: .
+    container_name: devin-remediation
+    ports:
+      - "8000:8000"
+    environment:
+      - DEVIN_API_KEY=${DEVIN_API_KEY}
+      - DEVIN_ORG_ID=${DEVIN_ORG_ID}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - REPO_OWNER=${REPO_OWNER}
+      - REPO_NAME=${REPO_NAME:-superset}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
