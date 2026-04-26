@@ -489,7 +489,7 @@ This system turns Devin into a **software engineering primitive** — a callable
 
 The current system is triggered via a GitHub label or the dashboard modal. The natural next step is **fully automated discovery-to-remediation**: the scanner finds the issue, an AI agent writes the GitHub issue, and Devin fixes it — with zero human steps before the PR review.
 
-### Proposed: Wiz + Green Agent → Devin Auto-Remediation
+### Proposed: Wiz + Issues Agent → Devin Auto-Remediation
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -533,7 +533,7 @@ The current system is triggered via a GitHub label or the dashboard modal. The n
 └────────────────────────────────────────────────┘
 ```
 
-**End result: Zero-touch remediation.** A new CVE is published → Wiz detects it in the next scan → Green writes the issue in 10 seconds → Devin opens a PR in 10 minutes. The only human step is the final PR review.
+**End result: Zero-touch remediation.** A new CVE is published → Wiz detects it in the next scan → Issues Agent writes the issue in 10 seconds → Devin opens a PR in 10 minutes. The only human step is the final PR review.
 
 ### Why Wiz?
 
@@ -545,6 +545,11 @@ Issues Agent bridges the gap between a raw scanner finding (a JSON payload with 
 
 ### Additional Roadmap Items
 
+- [ ] **Devin Knowledge Base** — one-time setup script that loads Superset's security conventions (env var naming, test location, PR standards) into Devin's knowledge store
+- [ ] **Agent Skills** - Teach Devin reusable testing procedures by committing SKILL.md files to your repos
+- [ ] **Devin Review** — automated PR quality gate triggered on pull_request webhook events with a [Devin] PR title filter, closes the fix → review → merge loop
+- [ ] **Multi-Devin Orchestration (Parallel Devins)** — ASCII diagram showing parent session spawning 4 or more parallel child sessions, one per CWE, reducing total time from ~40 min to ~10 min
+- [ ] **MCP Marketplace Integration** -  Trigger sessions from Linear issue or Jira issues, Datadog anamolies or Sentry exceptions
 - [ ] **CVSS / EPSS score filtering** — only auto-remediate findings above a severity threshold (e.g., EPSS ≥ 5%, CVSS ≥ 7.0)
 - [ ] **Slack / Teams notifications** — post PR link and fix summary to a security channel on session completion
 - [ ] **GitHub Actions integration** — trigger on `push` to catch new vulnerable dependency introductions immediately in CI
@@ -553,10 +558,7 @@ Issues Agent bridges the gap between a raw scanner finding (a JSON payload with 
 - [ ] **Webhook signature validation** — verify `X-Hub-Signature-256` HMAC header for production-grade security
 - [ ] **PostgreSQL backend** — replace SQLite for multi-instance, horizontally-scaled deployments
 - [ ] **PR quality scoring** — measure diff size, test coverage delta, and lint pass rate as quality signals per session
-- [ ] **Knowledge Base** — one-time setup script that loads Superset's security conventions (env var naming, test location, PR standards) into Devin's knowledge store
-- [ ] **Devin Review** — automated PR quality gate triggered on pull_request webhook events with a [Devin] PR title filter, closes the fix → review → merge loop
-- [ ] **Multi-Devin Orchestration (Parallel Devins)** — ASCII diagram showing parent session spawning 4 or more parallel child sessions, one per CWE, reducing total time from ~40 min to ~10 min
-- [ ] **MCP Marketplace Integration** -  Trigger sessions from Linear issue or Jira issues, Datadog anamolies or Sentry exceptions
+
 
 
 ---
