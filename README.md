@@ -125,14 +125,14 @@ devin-remediation/
 | Requirement | Notes |
 |---|---|
 | Docker 24+ | With Compose plugin (`docker compose`) |
-| Devin API Key | `cog_...` from [app.devin.ai → Settings → API](https://app.devin.ai) |
+| Devin Service User Key | `cog_...` from [app.devin.ai → Settings → Service users](https://app.devin.ai) |
 | Devin Org ID | Found in your Devin organization URL |
 | GitHub PAT | Scopes: `repo` (to read issues and receive webhooks) |
 | ngrok or public IP | Required for GitHub webhook to reach your local machine |
 
-**Getting a Devin API Key:**
+**Getting a Devin Service User Key:**
 1. Log in to [app.devin.ai](https://app.devin.ai)
-2. Go to **Settings → API Keys → New Key** — the key starts with `cog_`
+2. Go to **Settings → Service Users → Provision Service User** — the key starts with `cog_`
 3. Your `DEVIN_ORG_ID` is the UUID in your org URL: `https://app.devin.ai/organizations/{DEVIN_ORG_ID}/...`
 
 ---
@@ -177,7 +177,7 @@ Copy `.env.example` to `.env` and fill in all values:
 
 | Variable | Required | Description | Example |
 |---|---|---|---|
-| `DEVIN_API_KEY` | ✅ | Your Devin API key | `cog_abc123...` |
+| `DEVIN_API_KEY` | ✅ | Your Devin Service User key | `cog_abc123...` |
 | `DEVIN_ORG_ID` | ✅ | Your Devin organization UUID | `org_abc123...` |
 | `GITHUB_TOKEN` | ✅ | GitHub PAT with `repo` scope | `ghp_abc123...` |
 | `REPO_OWNER` | ✅ | GitHub username of your fork | `sumitshatwara` |
@@ -510,7 +510,7 @@ The current system is triggered via a GitHub label or the dashboard modal. The n
                  │  Webhook on new critical/high finding
                  ▼
 ┌────────────────────────────────────────────────┐
-│  Green Agent (AI Coding Assistant)             │
+│  Issues Agent (AI Coding Assistant)             │
 │                                                │
 │  • Parses raw Wiz finding (CVE ID, file, line) │
 │  • Enriches it: maps CVE → root cause → fix    │
@@ -539,9 +539,9 @@ The current system is triggered via a GitHub label or the dashboard modal. The n
 
 Wiz provides unified **cloud-native SCA and SAST** that understands both the infrastructure context (where the app runs, what IAM permissions it has) and the code context (which packages are in scope, what secrets exist in config). Wiz findings are prioritized by actual exploitability — not just CVSS score — which makes the auto-remediation queue actionable rather than overwhelming.
 
-### Why Green Agent?
+### Why Issues Agent?
 
-Green bridges the gap between a raw scanner finding (a JSON payload with a CVE ID and a file path) and a well-written GitHub Issue that Devin can act on effectively. It translates scanner jargon into plain-language descriptions and seeds Devin with the right approach before the session even starts — reducing the chance of Devin spending time on root-cause analysis that the scanner already did.
+Issues Agent bridges the gap between a raw scanner finding (a JSON payload with a CVE ID and a file path) and a well-written GitHub Issue that Devin can act on effectively. It translates scanner jargon into plain-language descriptions and seeds Devin with the right approach before the session even starts — reducing the chance of Devin spending time on root-cause analysis that the scanner already did.
 
 ### Additional Roadmap Items
 
@@ -553,6 +553,11 @@ Green bridges the gap between a raw scanner finding (a JSON payload with a CVE I
 - [ ] **Webhook signature validation** — verify `X-Hub-Signature-256` HMAC header for production-grade security
 - [ ] **PostgreSQL backend** — replace SQLite for multi-instance, horizontally-scaled deployments
 - [ ] **PR quality scoring** — measure diff size, test coverage delta, and lint pass rate as quality signals per session
+- [ ] **Knowledge Base** — one-time setup script that loads Superset's security conventions (env var naming, test location, PR standards) into Devin's knowledge store
+- [ ] **Devin Review** — automated PR quality gate triggered on pull_request webhook events with a [Devin] PR title filter, closes the fix → review → merge loop
+- [ ] **Multi-Devin Orchestration (Parallel Devins)** — ASCII diagram showing parent session spawning 4 or more parallel child sessions, one per CWE, reducing total time from ~40 min to ~10 min
+- [ ] **MCP Marketplace Integration** -  Trigger sessions from Linear issue or Jira issues, Datadog anamolies or Sentry exceptions
+
 
 ---
 
